@@ -1,6 +1,12 @@
 from music import Music
 
 
+def test(s):
+  s.minor_135_chord(60, 1920)
+  s.major_135_chord_inv1(60, 960)
+  s.major_15_chord_inv2(60, 960)
+
+
 # Actual contents of the song!
 # Edit this method to customize the settings
 # for the song you want to make.
@@ -19,6 +25,7 @@ def main():
   # song.xmen_full(2, 1920, 0, 0)
   # song.random_chord_prog_full(6, 1920, 0, 0)
 
+  test(song)
   song.finish("example")
 
 

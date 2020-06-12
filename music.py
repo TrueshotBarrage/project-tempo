@@ -11,11 +11,11 @@ class Music:
     self.num_tracks = 1
     self.quarter_note = 480
     self.ts_num = 4
-    self.ts_denom = 2  # negative power of two, e.g. quarter note = 2; eighth note = 3
+    self.ts_denom = 2  # negative power of two, e.g. eighth note = 3
     self.key_signature = key  # -7 to 7 inclusive; flats (-) & sharps (+)
     self.major = "major"
-    self.bpm = 120
     # 500000 = 120 quarter notes (beats) per minute; also 60,000,000 / bpm
+    self.bpm = 120
     self.tempo = 60000000 / self.bpm
 
     self.LH_instrument = 0
@@ -79,157 +79,79 @@ class Music:
       x = func(*args)
     return
 
-# ----------------------------------------------------------------------------------------------
+  # Plays a note at a given time for the specified duration, with optional args.
+  def play_note(self, note, time, length, d=0.875, ch=0, track=1):
+    self.lines.append([track, time, "Note_on_c", ch, note, 80])
+    self.lines.append([track, time + (length * d), "Note_off_c", ch, note, 0])
 
-# 1-3-5 block chords and their inversions
+  # Plays a general block chord of variadic notes.
+  def block(self, time, length, *notes, d=0.875, ch=0, track=1):
+    for note in notes:
+      self.play_note(note, time, length, d, ch, track)
 
-  def major_135_chord(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 4, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 4, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-
+  # Plays a major 1-3-5 chord of a given root note. Assumes LH.
+  def major_135_chord(self, note, length, ch=0):
+    self.block(self.LH_time, length, note, note + 4, note + 7, ch=ch)
     self.LH_time += length
 
-  def minor_135_chord(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 3, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 3, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-
+  # Identical to the major counterpart but with a minor third.
+  def minor_135_chord(self, note, length, ch=0):
+    self.block(self.LH_time, length, note, note + 3, note + 7, ch=ch)
     self.LH_time += length
 
-  def major_135_chord_inv1(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 4, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 12, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 4, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 12, 0])
-
+  # Plays a major 3-5-8 chord, where 8 represents the root note. Assumes LH.
+  def major_135_chord_inv1(self, note, length, ch=0):
+    self.block(self.LH_time, length, note + 4, note + 7, note + 12, ch=ch)
     self.LH_time += length
 
-  def minor_135_chord_inv1(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 3, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 12, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 3, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 12, 0])
-
+  # Same as its major counterpart, but played with a minor third.
+  def minor_135_chord_inv1(self, note, length, ch=0):
+    self.block(self.LH_time, length, note + 3, note + 7, note + 12, ch=ch)
     self.LH_time += length
 
-  def major_135_chord_inv2(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 12, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 16, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 12, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 16, 0])
-
+  # Plays a major 5-8-10 chord, with root 8. Assumes LH.
+  def major_135_chord_inv2(self, note, length, ch=0):
+    self.block(self.LH_time, length, note + 7, note + 12, note + 16, ch=ch)
     self.LH_time += length
 
-  def minor_135_chord_inv2(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 12, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 15, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 12, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 15, 0])
-
+  # Same as the major version but with a minor third (10).
+  def minor_135_chord_inv2(self, note, length, ch=0):
+    self.block(self.LH_time, length, note + 7, note + 12, note + 15, ch=ch)
     self.LH_time += length
 
-# ------------------------------------------------------------------------------------------------
-
-# 1-5 chords and their inversions (1-5, 3-8, 5-10)
-
-  def major_15_chord(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-
+  # Plays a 1-5 chord with the root note and its fifth. Assumes LH.
+  def major_15_chord(self, note, length, ch=0):
+    self.block(self.LH_time, length, note, note + 7, ch=ch)
     self.LH_time += length
 
-  def minor_15_chord(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', 0, note, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', 0, note + 7, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', 0, note, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', 0, note + 7, 0])
+  # Exactly identical to its major counterpart.
+  def minor_15_chord(self, note, length, ch=0):
+    self.major_15_chord(note, length, ch)
 
+  # Plays a major 3-8 chord of the specified note as the root (8). Assumes LH.
+  def major_15_chord_inv1(self, note, length, ch=0):
+    self.block(self.LH_time, length, note + 4, note + 12, ch=ch)
     self.LH_time += length
 
-  def major_15_chord_inv1(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 4, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 12, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 4, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 12, 0])
-
+  # Same as its major counterpart, but with a minor third.
+  def minor_15_chord_inv1(self, note, length, ch=0):
+    self.block(self.LH_time, length, note + 3, note + 12, ch=ch)
     self.LH_time += length
 
-  def minor_15_chord_inv1(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 3, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 12, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 3, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 12, 0])
-
+  # Plays a major 5-10 chord of the specified note as the key (1). Assumes LH.
+  def major_15_chord_inv2(self, note, length, ch=0):
+    self.block(self.LH_time, length, note + 7, note + 16, ch=ch)
     self.LH_time += length
 
-  def major_15_chord_inv2(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 16, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 16, 0])
-
-    self.LH_time += length
-
+  # Same as its major counterpart, but with a minor third (10).
   def minor_15_chord_inv2(self, note, length, ch):
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 7, 80])
-    self.lines.append([1, self.LH_time, 'Note_on_c', ch, note + 15, 80])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 7, 0])
-    self.lines.append(
-        [1, self.LH_time + (7 * length / 8), 'Note_off_c', ch, note + 15, 0])
-
+    self.block(self.LH_time, length, note + 7, note + 15, ch=ch)
     self.LH_time += length
 
-# -------------------------------------------------------------------------------------------------
+  # TODO: Code below needs revamp
 
-# 1-3-5 arpeggiated chord
-# Played on beats 1, 2, 3 (not 4)
-
+  # 1-3-5 arpeggiated chord
+  # Played on beats 1, 2, 3 (not 4)
   def major_135_chord_arpeg(self, note, length, ch):
     self.lines.append([1, self.LH_time, 'Note_on_c', ch, note, 80])
     self.lines.append(
@@ -315,7 +237,7 @@ class Music:
 
     self.RH_time += length
 
-# -------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # Truly something else. Just try it out...
 # Too hard to explain in words. Jazzy!
@@ -360,7 +282,7 @@ class Music:
 
     self.RH_time += length
 
-# -------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # Random block chords
 
@@ -505,7 +427,7 @@ class Music:
     return prog
 
 
-# -------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # Plays a (truly) random RH melody,
 # chosen from any 7 notes of the major scale
